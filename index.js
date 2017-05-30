@@ -48,7 +48,7 @@ app.get('/api/:img', function(req, res, next) {
 
 	var args;
 
-	if(req.params.img){
+	/*if(req.params.img){
 		 args = req.params.img;
 	}else {
 		args = req.query.params;
@@ -59,12 +59,14 @@ app.get('/api/:img', function(req, res, next) {
 
 	imgurUrl=imgurUrl+ '/?q=' + req.params.img;
 	var searchOptions = {
-  		uri: urlForConn,
-  		headers:{"Authorization" : 'Client-ID ' + process.env.IMGUR_ID},
+  		uri: imgurUrl,
+  		headers:{"Authorization" : 'Client-ID ' + process.env.IMGURID},
     	method: 'GET'
 	};
+	*/
 
+	console.log(process.env.IMGURID);
     
 
-	res.send("search me");
+	res.send(process.env.IMGURID);
 });
