@@ -76,7 +76,7 @@ app.get('/api/search/:img', function(req, res) {
 
 	var searchOptions = {
   		uri: completeUrl,
-  		headers:{"Authorization" : 'Client-ID 13ec834f9b6dc3c'}, // + process.env.IMGURID
+  		headers:{"Authorization" : 'Client-ID '+ process.env.IMGURID}, 
     	method: 'GET'
 	};
 
