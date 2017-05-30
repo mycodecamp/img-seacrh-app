@@ -2,20 +2,19 @@ var express=require('express');
 var mongodb=require('mongodb');
 var path=require('path');
 var https=require('https');
-
-//heroku git:remote -a img-search-app
-
+var request = require('request');
 
 var app=express();
+
 app.set('port',(process.env.PORT || 5000));
 
 var MongoClient = mongodb.MongoClient;
+
 var url = 'mongodb://img-user:img-user@ds157571.mlab.com:57571/img-search-app'; 
 
-
-
-
 var database;
+
+
 MongoClient.connect(url, function (err, db) {
   if (err) {
     console.log('Unable to connect to the mongoDB server. Error:', err);
@@ -44,29 +43,88 @@ app.get('/', function(req, res) {
 });
 
 
-app.get('/api/:img', function(req, res, next) {
+app.get('/api/search/:img', function(req, res) {
 
-	var args;
+	
+	//mongodb insert
+	var insertData = {
+    	term: req.params.img,
+    	when: new Date().toISOString()
+	};
 
-	/*if(req.params.img){
-		 args = req.params.img;
-	}else {
-		args = req.query.params;
-	}
+	database.collection('img-search').findOne({'keyword':req.params.img}, function(error, results) {
 
-	var imgurUrl='https://api.imgur.com/3/gallery/search/';
+		if (error) res.status(404).send(error);
+
+		if (results) {
+			console.log('already in collection so no insert');
+		}
+		else {
+			database.collection('img-search').insertOne(insertData, function(err, data) {
+              
+    			if (err) throw err;   
+			});
+		}
+	});
+
+	// imgurl api 
+	var imgurUrl='https://api.imgur.com/3/gallery/search/';	
+
 	if (req.query.offset) imgurUrl = imgurUrl + "/offset=" + req.query.offset;
 
-	imgurUrl=imgurUrl+ '/?q=' + req.params.img;
+	var completeUrl=imgurUrl+ '/?q=' + req.params.img;
+
 	var searchOptions = {
-  		uri: imgurUrl,
-  		headers:{"Authorization" : 'Client-ID ' + process.env.IMGURID},
+  		uri: completeUrl,
+  		headers:{"Authorization" : 'Client-ID 13ec834f9b6dc3c'}, // + process.env.IMGURID
     	method: 'GET'
 	};
-	*/
 
-	console.log(process.env.IMGURID);
+	var returnData=[];
+
+	request(searchOptions, function(error, response, body) {
+
+  		if(error){
+    			return res.json({error: "Could not connect to external api."});
+  		}else{
+  
+  			var images = JSON.parse(body);
+  		
+			var imageInfo = images.data.map(function(item){
+				var thumbnail = null;
+
+				if(item.animated===false){
+					if(item.type==='image/jpeg')
+						thumbnail = 'http://i.imgur.com/' + item.id + "s.jpg";
+					
+					if(item.type==='image/png')
+						thumbnail = 'http://i.imgur.com/' + item.id + "s.png";						
+				}
+
+				var jsonVar={
+					        url: item.link,
+					        snippet: item.description,
+					        thumbnail: thumbnail,
+					        alt_text: item.title
+					    };
     
+				returnData.push(jsonVar);
+			});
+			res.send(returnData);
+			res.end();
+			returnData=[];
+		}
+	});	
+});
 
-	res.send(process.env.IMGURID);
+
+app.get('/api/latest/', function(req, res) {
+
+	database.collection('img-search').find({}, {"_id":0}).toArray(function(err, result) {
+		if (err) res.status(404).send(err);
+
+		if(result) res.send(result);
+        else return res.json({error: "No prior searches found."});
+	});
+
 });
