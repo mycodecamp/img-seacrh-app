@@ -9,7 +9,7 @@ A JavaScript app that allows you to search for images and and browse recent sear
 
 + I can get a list of the most recently submitted search strings.
 
-[Check image search app](https://img-search-app.herokuapp.com/){:target="_blank"}
+[Check image search app](https://img-search-app.herokuapp.com/ target="_blank")
 
 
 
