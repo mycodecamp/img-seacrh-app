@@ -120,7 +120,7 @@ app.get('/api/search/:img', function(req, res) {
 
 app.get('/api/latest/', function(req, res) {
 
-	database.collection('img-search').find({}, {"_id":0}).sort({when: 1}).toArray(function(err, result) {
+	database.collection('img-search').find({}, {"_id":0}).sort({"when": -1}).toArray(function(err, result) {
 		if (err) res.status(404).send(err);
 
 		if(result) res.send(result);
